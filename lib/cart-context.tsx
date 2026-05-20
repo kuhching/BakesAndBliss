@@ -9,6 +9,7 @@ export interface CartItem {
   variantLabel: string
   priceCents: number
   quantity: number
+  minQuantity: number
   imageFilename: string | null
 }
 
@@ -76,7 +77,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }
 
   function clearCart() {
-    localStorage.removeItem(STORAGE_KEY)
     setItems([])
   }
 

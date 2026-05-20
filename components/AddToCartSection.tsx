@@ -50,6 +50,7 @@ export function AddToCartSection({ product, sortedVariants }: Props) {
       variantLabel,
       priceCents: selectedVariant.price_cents,
       quantity,
+      minQuantity: selectedVariant.min_quantity,
       imageFilename: product.images[0]?.filename ?? null,
     }
 

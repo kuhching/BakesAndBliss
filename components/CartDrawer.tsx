@@ -97,7 +97,7 @@ export function CartDrawer() {
                     <div className="flex items-center border border-purple/20 rounded-full overflow-hidden">
                       <button
                         type="button"
-                        onClick={() => updateQuantity(item.variantId, item.quantity - 1)}
+                        onClick={() => updateQuantity(item.variantId, Math.max(item.minQuantity, item.quantity - 1))}
                         aria-label="Decrease quantity"
                         className="w-7 h-7 flex items-center justify-center text-ink hover:bg-surface text-sm transition-colors"
                       >

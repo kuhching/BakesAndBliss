@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import pool from '@/lib/db'
+import { formatPrice } from '@/lib/products'
 
 interface OrderRow {
   id: string
@@ -93,15 +94,15 @@ export default async function ConfirmationPage({
                 </p>
               </div>
               <p className="font-body font-bold text-sm text-ink shrink-0">
-                ${(item.line_total_cents / 100).toFixed(2)}
+                {formatPrice(item.line_total_cents)}
               </p>
             </div>
           ))}
         </div>
         <div className="px-4 py-3 bg-surface border-t border-purple/10 flex justify-between items-center">
-          <span className="font-body font-bold text-sm text-ink">Total Paid</span>
+          <span className="font-body font-bold text-sm text-ink">Order Total</span>
           <span className="font-body font-bold text-ink text-base">
-            ${(order.total_cents / 100).toFixed(2)}
+            {formatPrice(order.total_cents)}
           </span>
         </div>
       </div>

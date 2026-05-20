@@ -126,7 +126,7 @@ export async function placeOrder(
 
   // Wrap all writes in a transaction
   const client = await pool.connect()
-  let orderId: string
+  let orderId = ''
   try {
     await client.query('BEGIN')
 
@@ -160,8 +160,9 @@ export async function placeOrder(
 
     await client.query('COMMIT')
   } catch (err) {
-    await client.query('ROLLBACK')
-    throw err
+    try { await client.query('ROLLBACK') } catch {}
+    console.error('Order transaction failed:', err)
+    return { error: 'Something went wrong. Please try again.' }
   } finally {
     client.release()
   }

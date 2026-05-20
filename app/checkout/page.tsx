@@ -1,7 +1,7 @@
 // app/checkout/page.tsx
 'use client'
 
-import { useActionState, useEffect, useState } from 'react'
+import { useActionState, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useCart } from '@/lib/cart-context'
@@ -35,9 +35,9 @@ export default function CheckoutPage() {
   const { items, subtotalCents, clearCart } = useCart()
   const router = useRouter()
 
-  // Redirect to products if cart is empty
+  // Redirect to products if cart is empty (skip if order just succeeded)
   useEffect(() => {
-    if (items.length === 0) router.replace('/products')
+    if (!orderSucceeded.current && items.length === 0) router.replace('/products')
   }, [items.length, router])
 
   // Controlled delivery state for live fee calculation
@@ -46,6 +46,8 @@ export default function CheckoutPage() {
   const [hotelsHospitalsOrPeak, setHotelsHospitalsOrPeak] = useState(false)
   const [eveOrHoliday, setEveOrHoliday] = useState(false)
   const [specificTime, setSpecificTime] = useState(false)
+
+  const orderSucceeded = useRef(false)
 
   const fee = calculateDeliveryFee({
     mode,
@@ -62,6 +64,7 @@ export default function CheckoutPage() {
   // On success: clear cart and redirect to confirmation
   useEffect(() => {
     if (state?.orderId) {
+      orderSucceeded.current = true
       clearCart()
       router.push(`/checkout/confirmation?id=${state.orderId}`)
     }
