@@ -68,13 +68,22 @@ export async function placeOrder(
   if (!input.email || !input.email.includes('@')) return { error: 'A valid email is required.' }
   if (!input.phone) return { error: 'Phone number is required.' }
   if (!input.date) return { error: 'Please select a date.' }
+  if (input.date && isNaN(Date.parse(input.date))) {
+    return { error: 'Invalid date format.' }
+  }
+  if (!['self-collect', 'delivery'].includes(input.mode)) {
+    return { error: 'Invalid delivery mode.' }
+  }
+  if (input.items.some(i => i.quantity <= 0)) {
+    return { error: 'Quantity must be at least 1.' }
+  }
   if (input.mode === 'delivery' && !input.address) return { error: 'Delivery address is required.' }
   if (input.mode === 'delivery' && input.specificTime && !input.specificTimeValue) {
     return { error: 'Please specify the requested time.' }
   }
 
   // Re-fetch prices from DB — never trust client
-  const variantIds = input.items.map(i => i.variantId)
+  const variantIds = [...new Set(input.items.map(i => i.variantId))]
   const { rows: variants } = await pool.query<{ id: string; price_cents: number }>(
     `SELECT id, price_cents FROM product_variants WHERE id = ANY($1::uuid[])`,
     [variantIds]
@@ -115,35 +124,46 @@ export async function placeOrder(
 
   const fullNotes = [deliveryNote, input.notes].filter(Boolean).join('\n')
 
-  // Upsert customer by email
-  const { rows: customerRows } = await pool.query<{ id: string }>(
-    `INSERT INTO customers (name, email, phone)
-     VALUES ($1, $2, $3)
-     ON CONFLICT (email) DO UPDATE
-       SET name = EXCLUDED.name, phone = EXCLUDED.phone, updated_at = NOW()
-     RETURNING id`,
-    [input.name, input.email, input.phone]
-  )
-  const customerId = customerRows[0].id
+  // Wrap all writes in a transaction
+  const client = await pool.connect()
+  let orderId: string
+  try {
+    await client.query('BEGIN')
 
-  // Insert order
-  const { rows: orderRows } = await pool.query<{ id: string }>(
-    `INSERT INTO orders
-       (customer_id, status, subtotal_cents, discount_cents, total_cents, notes, delivery_date)
-     VALUES ($1, 'pending', $2, 0, $3, $4, $5)
-     RETURNING id`,
-    [customerId, subtotalCents, totalCents, fullNotes, input.date]
-  )
-  const orderId = orderRows[0].id
-
-  // Insert order items
-  for (const item of input.items) {
-    const unitPrice = priceMap.get(item.variantId)!
-    await pool.query(
-      `INSERT INTO order_items (order_id, product_variant_id, quantity, unit_price_cents, line_total_cents)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [orderId, item.variantId, item.quantity, unitPrice, unitPrice * item.quantity]
+    const { rows: customerRows } = await client.query<{ id: string }>(
+      `INSERT INTO customers (name, email, phone)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (email) DO UPDATE
+         SET name = EXCLUDED.name, phone = EXCLUDED.phone, updated_at = NOW()
+       RETURNING id`,
+      [input.name, input.email, input.phone]
     )
+    const customerId = customerRows[0].id
+
+    const { rows: orderRows } = await client.query<{ id: string }>(
+      `INSERT INTO orders
+         (customer_id, status, subtotal_cents, discount_cents, total_cents, notes, delivery_date)
+       VALUES ($1, 'pending', $2, 0, $3, $4, $5)
+       RETURNING id`,
+      [customerId, subtotalCents, totalCents, fullNotes, input.date]
+    )
+    orderId = orderRows[0].id
+
+    await Promise.all(input.items.map(item => {
+      const unitPrice = priceMap.get(item.variantId)!
+      return client.query(
+        `INSERT INTO order_items (order_id, product_variant_id, quantity, unit_price_cents, line_total_cents)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [orderId, item.variantId, item.quantity, unitPrice, unitPrice * item.quantity]
+      )
+    }))
+
+    await client.query('COMMIT')
+  } catch (err) {
+    await client.query('ROLLBACK')
+    throw err
+  } finally {
+    client.release()
   }
 
   return { orderId }
