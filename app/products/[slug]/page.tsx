@@ -1,7 +1,9 @@
+// app/products/[slug]/page.tsx
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getProductById, formatPrice } from '@/lib/products';
+import { getProductById } from '@/lib/products';
+import { AddToCartSection } from '@/components/AddToCartSection';
 
 const MAX_GALLERY_IMAGES = 4;
 
@@ -19,7 +21,6 @@ export default async function ProductDetailPage({
 
   const sortedVariants = [...product.variants].sort((a, b) => a.display_order - b.display_order);
 
-  // De-duplicate images by filename — one representative per distinct photo
   const seenFilenames = new Set<string>();
   const uniqueImages = product.images.filter((img) => {
     if (seenFilenames.has(img.filename)) return false;
@@ -29,7 +30,6 @@ export default async function ProductDetailPage({
   const galleryImages = uniqueImages.slice(0, MAX_GALLERY_IMAGES);
   const extraCount = uniqueImages.length - galleryImages.length;
 
-  // Unique sizes and flavors for the options summary
   const sizes = [...new Set(sortedVariants.map((v) => v.size_label).filter(Boolean))] as string[];
   const flavors = [...new Set(sortedVariants.map((v) => v.flavor).filter(Boolean))] as string[];
 
@@ -45,7 +45,7 @@ export default async function ProductDetailPage({
 
       <div className="grid md:grid-cols-2 gap-8 lg:gap-14">
 
-        {/* Images — capped at 4, de-duplicated */}
+        {/* Images */}
         <div className="flex flex-col gap-3">
           {galleryImages.length > 0 ? (
             <>
@@ -122,51 +122,15 @@ export default async function ProductDetailPage({
           )}
 
           {product.description && (
-            <p className="font-body font-light text-ink/80 leading-relaxed mb-8 text-sm sm:text-base">
+            <p className="font-body font-light text-ink/80 leading-relaxed mb-6 text-sm sm:text-base">
               {product.description}
             </p>
           )}
 
-          {/* Variants table */}
-          <div className="border border-purple/15 rounded-2xl overflow-hidden mb-6">
-            <div className="bg-header px-4 py-3 border-b border-purple/10">
-              <p className="text-[11px] font-body font-light text-ink uppercase tracking-[0.22em]">
-                Options &amp; Pricing
-              </p>
-            </div>
-            <table className="w-full">
-              <thead className="border-b border-purple/10 bg-surface">
-                <tr>
-                  {['Flavour', 'Size', 'Price', 'Min'].map((h, i) => (
-                    <th
-                      key={h}
-                      className={`px-4 py-2.5 text-[10px] font-body font-light text-ink/60 uppercase tracking-widest ${
-                        i >= 2 ? 'text-right' : 'text-left'
-                      }`}
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-purple/10">
-                {sortedVariants.map((v) => (
-                  <tr key={v.id} className="hover:bg-surface transition-colors bg-white">
-                    <td className="px-4 py-3 font-body text-sm text-ink">{v.flavor ?? '—'}</td>
-                    <td className="px-4 py-3 font-body font-light text-sm text-ink/70">{v.size_label ?? '—'}</td>
-                    <td className="px-4 py-3 text-right font-body font-bold text-ink text-sm">
-                      {formatPrice(v.price_cents)}
-                    </td>
-                    <td className="px-4 py-3 text-right font-body font-light text-sm text-ink/60">
-                      {v.min_quantity}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {/* Interactive variant selector + Add to Cart */}
+          <AddToCartSection product={product} sortedVariants={sortedVariants} />
 
-          <p className="text-[11px] font-body font-light text-ink/40 tracking-wide">
+          <p className="text-[11px] font-body font-light text-ink/40 tracking-wide mt-4">
             Page {product.source_page} · {sortedVariants.length} option{sortedVariants.length !== 1 ? 's' : ''}
           </p>
         </div>
