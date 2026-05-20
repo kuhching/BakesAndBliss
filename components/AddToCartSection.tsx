@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useCart, CartItem } from '@/lib/cart-context'
 import type { ProductVariant, ProductWithDetails } from '@/types/product'
-import { formatPrice } from '@/lib/products'
+import { formatPrice } from '@/lib/format'
 
 interface Props {
   product: ProductWithDetails

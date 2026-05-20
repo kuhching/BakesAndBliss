@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useCart } from '@/lib/cart-context'
 import { calculateDeliveryFee, DeliveryMode, ProductType } from '@/lib/delivery-fee'
-import { formatPrice } from '@/lib/products'
+import { formatPrice } from '@/lib/format'
 import { placeOrder } from './actions'
 
 function Label({ children, htmlFor }: { children: React.ReactNode; htmlFor?: string }) {

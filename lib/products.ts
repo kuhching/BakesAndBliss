@@ -178,11 +178,4 @@ export async function getReviewItems(): Promise<RawFormOption[]> {
   return rows;
 }
 
-export function formatPrice(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`;
-}
-
-export function priceRange(min: number, max: number): string {
-  if (min === max) return formatPrice(min);
-  return `${formatPrice(min)} – ${formatPrice(max)}`;
-}
+export { formatPrice, priceRange } from './format'

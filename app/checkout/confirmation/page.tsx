@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import pool from '@/lib/db'
-import { formatPrice } from '@/lib/products'
+import { formatPrice } from '@/lib/format'
 
 interface OrderRow {
   id: string
