@@ -1,7 +1,7 @@
 // components/AddToCartSection.tsx
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useCart, CartItem } from '@/lib/cart-context'
 import type { ProductVariant, ProductWithDetails } from '@/types/product'
 import { formatPrice } from '@/lib/products'
@@ -21,9 +21,16 @@ export function AddToCartSection({ product, sortedVariants }: Props) {
     sortedVariants.length === 1 ? sortedVariants[0].min_quantity : 1
   )
   const [added, setAdded] = useState(false)
+  const addedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const selectedVariant = sortedVariants.find(v => v.id === selectedVariantId) ?? null
   const minQty = selectedVariant?.min_quantity ?? 1
+
+  useEffect(() => {
+    return () => {
+      if (addedTimerRef.current) clearTimeout(addedTimerRef.current)
+    }
+  }, [])
 
   function handleSelectVariant(variant: ProductVariant) {
     setSelectedVariantId(variant.id)
@@ -31,7 +38,7 @@ export function AddToCartSection({ product, sortedVariants }: Props) {
   }
 
   function handleAdd() {
-    if (!selectedVariant) return
+    if (!selectedVariant || added) return
 
     const parts = [selectedVariant.flavor, selectedVariant.size_label].filter(Boolean)
     const variantLabel = parts.join(' · ') || 'Standard'
@@ -49,7 +56,7 @@ export function AddToCartSection({ product, sortedVariants }: Props) {
     addToCart(item)
     openCart()
     setAdded(true)
-    setTimeout(() => setAdded(false), 1500)
+    addedTimerRef.current = setTimeout(() => setAdded(false), 1500)
   }
 
   return (
@@ -133,7 +140,7 @@ export function AddToCartSection({ product, sortedVariants }: Props) {
       <button
         type="button"
         onClick={handleAdd}
-        disabled={!selectedVariant}
+        disabled={!selectedVariant || added}
         className={`w-full py-3.5 rounded-full font-body text-sm font-bold tracking-[0.15em] uppercase transition-all duration-200 ${
           added
             ? 'bg-green-600 text-white cursor-default'
