@@ -152,6 +152,7 @@ export default function CheckoutPage() {
                     id="address"
                     name="address"
                     type="text"
+                    required
                     placeholder="Block 123, Ang Mo Kio Ave 3, #04-56, S(560123)"
                   />
                 </div>
