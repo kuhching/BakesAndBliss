@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react'
 
 export interface CartItem {
   variantId: string
@@ -32,15 +32,21 @@ const STORAGE_KEY = 'bb_cart'
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
   const [isOpen, setIsOpen] = useState(false)
+  const hydrated = useRef(false)
 
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored) setItems(JSON.parse(stored))
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        if (Array.isArray(parsed)) setItems(parsed)
+      }
     } catch { /* ignore corrupt storage */ }
+    hydrated.current = true
   }, [])
 
   useEffect(() => {
+    if (!hydrated.current) return
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
   }, [items])
 
@@ -70,6 +76,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }
 
   function clearCart() {
+    localStorage.removeItem(STORAGE_KEY)
     setItems([])
   }
 

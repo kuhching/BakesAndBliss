@@ -1,65 +1,119 @@
+import Link from "next/link";
 import Image from "next/image";
+import { getCategories } from "@/lib/products";
 
-export default function Home() {
+const PLACEHOLDER_IMAGES = [
+  "basque-burnt-cheesecake-7-ea4f9217.jpg",
+  "cakey-brownies-9be5f813.jpg",
+  "cupcakes-93683e4e.jpg",
+  "classic-victoria-sandwich-2c76678e.jpg",
+  "combo-tarts-7aab1604.jpg",
+  "chocolate-raspberry-c1a82b3f.jpg",
+  "carrot-cake-500a0637.jpg",
+  "assorted-mini-cheesecake-334d8f7b.jpg",
+  "red-velvet-18696d75.jpg",
+  "premium-cupcakes-a60ea0ee.jpg",
+  "fudgy-brownies-dc00ea38.jpg",
+  "victoria-35917466.jpg",
+];
+
+export default async function Home() {
+  const categories = await getCategories();
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="flex flex-col">
+
+      {/* ── Hero ── */}
+      <section className="flex flex-col items-center justify-center px-4 py-16 sm:py-24 text-center relative overflow-hidden bg-surface">
+        <div className="absolute inset-0 bg-linear-to-b from-header/70 to-surface pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-140 h-140 rounded-full border border-purple/10 pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-85 h-85 rounded-full border border-purple/10 pointer-events-none" />
+
+        <div className="relative z-10 max-w-xl mx-auto flex flex-col items-center">
+          <p className="text-[11px] font-body font-light tracking-[0.35em] uppercase text-purple mb-5">
+            Freshly Baked · Made to Order
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          <h1 className="font-display text-5xl sm:text-7xl font-bold text-ink leading-[1.05] mb-5">
+            Bakes &amp;<br />
+            <em className="text-purple not-italic">Bliss</em>
+          </h1>
+          <p className="font-body font-light text-ink text-base sm:text-lg mb-10 max-w-sm leading-relaxed">
+            Artisan cookies, cheesecakes, tarts, and more — each one crafted
+            with love and baked fresh to your order.
+          </p>
+          <Link
+            href="/products"
+            className="inline-block bg-purple text-white font-body font-light tracking-[0.2em] uppercase text-xs px-10 py-4 rounded-full hover:bg-purple/90 transition-colors duration-300"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            Shop the Collection
+          </Link>
         </div>
-      </main>
-    </div>
+      </section>
+
+      {/* ── Category Cards ── */}
+      <section className="bg-surface px-4 sm:px-6 py-14 sm:py-16">
+        <div className="max-w-6xl mx-auto">
+          <p className="text-[11px] font-body font-light text-purple uppercase tracking-[0.3em] mb-2">
+            Browse by Category
+          </p>
+          <h2 className="font-display text-3xl sm:text-4xl font-bold text-ink mb-8">
+            What are you craving?
+          </h2>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+            {categories.map((cat, i) => {
+              const img = PLACEHOLDER_IMAGES[i % PLACEHOLDER_IMAGES.length];
+              return (
+                <Link
+                  key={cat.id}
+                  href={`/products?category=${cat.id}`}
+                  className="group flex flex-col rounded-2xl overflow-hidden border border-purple/15 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 bg-white"
+                >
+                  {/* Hero — header-pink base with photo */}
+                  <div className="relative aspect-4/3 bg-header overflow-hidden">
+                    <Image
+                      src={`/images/products/${img}`}
+                      alt={cat.name}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    />
+                    <div className="absolute inset-0 bg-linear-to-t from-ink/40 via-transparent to-transparent" />
+                  </div>
+
+                  {/* Body */}
+                  <div className="bg-white px-4 py-3 flex items-center justify-between gap-2">
+                    <h3 className="font-display font-bold text-ink text-sm leading-snug">
+                      {cat.name}
+                    </h3>
+                    <span className="text-purple text-sm shrink-0 group-hover:translate-x-0.5 transition-transform duration-200">
+                      →
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Feature strip ── */}
+      <section className="border-t border-purple/10 bg-surface py-8 sm:py-10">
+        <div className="max-w-3xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-4 text-center">
+          {[
+            { label: "Made to Order", desc: "Nothing sits on a shelf" },
+            { label: "Baked Fresh", desc: "Delivered at peak flavour" },
+            { label: "Artisan Craft", desc: "Small-batch, big love" },
+          ].map((f) => (
+            <div key={f.label} className="flex flex-col items-center gap-1.5">
+              <span className="text-purple text-xs mb-0.5">✦</span>
+              <p className="font-display text-sm font-bold text-ink">{f.label}</p>
+              <p className="font-body font-light text-xs text-ink/70 tracking-wide">{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+    </main>
   );
 }
