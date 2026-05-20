@@ -1,7 +1,7 @@
 // components/CartDrawer.tsx
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useCart } from '@/lib/cart-context'
@@ -9,10 +9,15 @@ import { formatPrice } from '@/lib/products'
 
 export function CartDrawer() {
   const { items, isOpen, closeCart, removeFromCart, updateQuantity, subtotalCents, totalItems } = useCart()
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
+  }, [isOpen])
+
+  useEffect(() => {
+    if (isOpen) closeButtonRef.current?.focus()
   }, [isOpen])
 
   return (
@@ -41,6 +46,7 @@ export function CartDrawer() {
             Your Cart{totalItems > 0 && <span className="text-purple ml-1">({totalItems})</span>}
           </h2>
           <button
+            ref={closeButtonRef}
             type="button"
             onClick={closeCart}
             aria-label="Close cart"
